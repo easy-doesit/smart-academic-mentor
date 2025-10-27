@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>Smart Academic Mentor</title>
+  <style>
+    body{
+      font-family:Poppins,sans-serif;
+      margin:0;
+      padding:16px;
+      background:#f9f9f9;
+      color:#222;
+      max-width:600px;
+      margin:auto;
+    }
+    h2{text-align:center;color:#007bff}
+    textarea,select,button{
+      width:100%;
+      font-size:16px;
+      padding:12px;
+      margin-top:8px;
+      border-radius:8px;
+      border:1px solid #ccc;
+      box-sizing:border-box;
+    }
+    button{
+      background:#007bff;
+      color:#fff;
+      border:none;
+      font-weight:600;
+      transition:opacity .3s;
+    }
+    button:hover{opacity:.9}
+    #out{
+      margin-top:16px;
+      white-space:pre-wrap;
+      background:#fff;
+      border-radius:8px;
+      padding:12px;
+      min-height:120px;
+      box-shadow:0 0 4px rgba(0,0,0,.1);
+    }
+    /* spinner */
+    #spinner{
+      display:none;
+      width:30px;height:30px;
+      border:4px solid #ccc;
+      border-top:4px solid #007bff;
+      border-radius:50%;
+      animation:spin 1s linear infinite;
+      margin:20px auto;
+    }
+    @keyframes spin{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}
+    /* copy */
+    #copyBtn{
+      display:none;
+      background:#28a745;
+      margin-top:10px;
+    }
+    #copiedMsg{
+      display:none;
+      text-align:center;
+      color:#155724;
+      background:#d4edda;
+      border-radius:6px;
+      padding:6px;
+      margin-top:6px;
+      font-size:14px;
+    }
+  </style>
+</head>
+<body>
+  <h2>Smart Academic Mentor</h2>
+
+  <textarea id="input" rows="5" placeholder="Enter your topic or paragraph"></textarea>
+
+  <label for="faculty"><b>Faculty / Discipline</b></label>
+  <select id="faculty">
+    <option>General Studies</option>
+    <option>Education</option>
+    <option>Engineering</option>
+    <option>Social Sciences</option>
+    <option>Management Sciences</option>
+    <option>Agriculture</option>
+    <option>Health Sciences</option>
+    <option>Environmental Studies</option>
+  </select>
+
+  <button onclick="sendReq('feedback')">Generate Feedback</button>
+  <button onclick="sendReq('outline')">Generate Outline</button>
+
+  <div id="spinner"></div>
+  <pre id="out"></pre>
+  <button id="copyBtn" onclick="copyResult()">Copy Result</button>
+  <div id="copiedMsg">Copied ✓</div>
+
+  <script>
+    const API_URL = "https://script.google.com/macros/s/AKfycbx8Bz7VM0R7ckAdM4Zz4UKO3Ikil0rIU5JxUw6r0IN1_52W5KJCCO1hRHaZrYPxIsc3/exec";
+
+    async function sendReq(type){
+      const input=document.getElementById("input").value.trim();
+      const faculty=document.getElementById("faculty").value;
+      const out=document.getElementById("out");
+      const spinner=document.getElementById("spinner");
+      const copyBtn=document.getElementById("copyBtn");
+      const copiedMsg=document.getElementById("copiedMsg");
+
+      if(!input){out.textContent="⚠️ Please enter text.";return;}
+      out.textContent="";copyBtn.style.display="none";copiedMsg.style.display="none";
+      spinner.style.display="block";
+
+      try{
+        const res=await fetch(API_URL,{
+          method:"POST",
+          headers:{"Content-Type":"application/json"},
+          body:JSON.stringify({input,type,faculty})
+        });
+        const data=await res.json();
+        spinner.style.display="none";
+        out.textContent=data.result||"⚠️ No response";
+        copyBtn.style.display="block";
+      }catch(e){
+        spinner.style.display="none";
+        out.textContent="⚠️ Network error: "+e;
+      }
+    }
+
+    function copyResult(){
+      const text=document.getElementById("out").innerText;
+      if(!text)return;
+      navigator.clipboard.writeText(text).then(()=>{
+        const msg=document.getElementById("copiedMsg");
+        msg.style.display="block";
+        setTimeout(()=>msg.style.display="none",2000);
+      });
+    }
+  </script>
+</body>
+</html>
